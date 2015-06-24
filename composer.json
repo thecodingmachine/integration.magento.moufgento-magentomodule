@@ -1,0 +1,24 @@
+{
+    "name": "mouf/integration.magento.moufgento-magentomodule",
+    "description": "This package is the Magento module associated to Moufgento, a modern MVC framework for Magento, based on the Splash MVC framework (designed for Mouf-PHP).",
+    "keywords": ["magento", "mvc", "splash", "mouf"],
+    "homepage": "http://mouf-php.com/packages/mouf/integration.magento.moufgento-magentomodule",
+    "type": "magento-module",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "David Négrier",
+            "email": "d.negrier@thecodingmachine.com",
+            "homepage": "http://mouf-php.com"
+        }
+    ],
+    "require": {
+    	  "php": ">=5.3.0",
+        "mouf/integration.magento.moufgento": "~1.0"
+    },
+    "extra" : {
+		"mouf" : {
+			"logo" : "logo.png"
+		}
+	}
+}

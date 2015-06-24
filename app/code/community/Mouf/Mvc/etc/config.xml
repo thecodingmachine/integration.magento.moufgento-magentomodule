@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config>
+    <modules>
+        <Mouf_Mvc>
+            <version>1.0.0</version>
+        </Mouf_Mvc>
+    </modules>
+	<global>
+		<helpers>
+			<mouf_mvc>
+				<class>Mouf_Mvc_Helper</class>
+			</mouf_mvc>
+		</helpers>
+	</global>
+    <frontend>
+    	<events>
+			<controller_action_predispatch>
+				<observers>
+					<dispatch_to_mouf>
+						<type>singleton</type>
+						<class>Mouf_Mvc_Model_Observer</class>
+						<method>onDispatchToMouf</method>
+					</dispatch_to_mouf>
+				</observers>
+			</controller_action_predispatch>
+		</events>
+    </frontend>
+</config>

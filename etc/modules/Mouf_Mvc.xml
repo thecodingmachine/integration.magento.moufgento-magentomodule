@@ -1,0 +1,8 @@
+<config>
+    <modules>
+        <Mouf_Mvc>
+            <active>true</active>
+            <codePool>community</codePool>
+        </Mouf_Mvc>
+    </modules>
+</config>
