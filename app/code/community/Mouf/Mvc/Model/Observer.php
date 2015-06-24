@@ -1,5 +1,4 @@
 <?php
-use \Symfony\Component\HttpFoundation\Request;
 use \Mouf\Integration\Magento\MagentoFallbackResponse;
 use \Mouf\Integration\Magento\MagentoHtmlElementBlock;
 
@@ -7,24 +6,30 @@ class Mouf_Mvc_Model_Observer extends Varien_Event_Observer
 {
 	public function onDispatchToMouf($observer) {
 		// Let's see if we can dispatch anything in Mouf!
-		require_once __DIR__.'/../../../../../../mouf/Mouf.php';
+		require_once __DIR__.'/../../../../../../../../../mouf/Mouf.php';
 
 		$defaultMagentoController = $observer->getData('controller_action');
 
 		/* @var $defaultMagentoController Mage_Cms_IndexController */
 
-		$request = Request::createFromGlobals();
-
 		$defaultRouter = Mouf::getDefaultRouter();
+
+		$server = Server::createServer($defaultRouter, $_SERVER, $_GET, $_POST, $_COOKIE, $_FILES);
 
 		$magentoTemplate = Mouf::getMagentoTemplate();
 		$magentoTemplate->setLayout($defaultMagentoController->getLayout());
 
 		define('ROOT_URL', parse_url(Mage::getBaseUrl(Mage_Core_Model_Store::URL_TYPE_WEB), PHP_URL_PATH));
 
-		$response = $defaultRouter->handle($request);
+		$response = $server->callback($server->request, $server->response);
 
 		if (!$response instanceof MagentoFallbackResponse) {
+
+			if (! $response->emitter) {
+				$emitter = new \Zend\Diactoros\Response\SapiEmitter();
+			} else {
+				$emitter = $response->emitter;
+			}
 
 			if ($magentoTemplate->isToHtmlTriggered()) {
 				// TODO: get content of $response and put it inside magento response.
@@ -48,9 +53,11 @@ class Mouf_Mvc_Model_Observer extends Varien_Event_Observer
 
 				$defaultMagentoController->renderLayout();
 
-				$defaultMagentoController->getResponse()->sendResponse();
+				//$defaultMagentoController->getResponse()->sendResponse();
+				$emitter->emit($defaultMagentoController->getResponse(), 0);
 			} else {
-				$response->send();
+
+				$emitter->emit($response);
 			}
 			// Exit not very good, but we are acting on an event that does not allow us to do otherwise.
 			exit;
