@@ -1,0 +1,4 @@
+app/code/community/Mouf/Mvc/etc/config.xml app/code/community/Mouf/Mvc/etc/config.xml
+app/code/community/Mouf/Mvc/Helper/Data.php app/code/community/Mouf/Mvc/Helper/Data.php
+app/code/community/Mouf/Mvc/Model/Observer.php app/code/community/Mouf/Mvc/Model/Observer.php
+app/etc/modules/Mouf_Mvc.xml app/etc/modules/Mouf_Mvc.xml
