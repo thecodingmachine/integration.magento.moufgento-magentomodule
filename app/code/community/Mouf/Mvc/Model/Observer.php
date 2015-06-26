@@ -56,6 +56,8 @@ class Mouf_Mvc_Model_Observer extends Varien_Event_Observer
 
 				$defaultMagentoController->getLayout()->getBlock('root')->setTemplate($magentoTemplate->getTemplate());
 
+				$defaultMagentoController->getLayout()->getBlock('head')->setTitle($magentoTemplate->getTitle());
+
 				$defaultMagentoController->getLayout()->getBlock('content')->append($magentoContentBlock /*$defaultMagentoController->getLayout()->createBlock('page/html_cookieNotice')*/);
 
 				$defaultMagentoController->renderLayout();
