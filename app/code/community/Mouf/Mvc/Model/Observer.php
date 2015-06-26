@@ -1,6 +1,8 @@
 <?php
-use \Mouf\Integration\Magento\MagentoFallbackResponse;
-use \Mouf\Integration\Magento\MagentoHtmlElementBlock;
+use Mouf\Integration\Magento\MagentoFallbackResponse;
+use Mouf\Integration\Magento\MagentoHtmlElementBlock;
+use Mouf\Mvc\Splash\HtmlResponse;
+use Zend\Diactoros\Server;
 
 class Mouf_Mvc_Model_Observer extends Varien_Event_Observer
 {
@@ -21,20 +23,24 @@ class Mouf_Mvc_Model_Observer extends Varien_Event_Observer
 
 		define('ROOT_URL', parse_url(Mage::getBaseUrl(Mage_Core_Model_Store::URL_TYPE_WEB), PHP_URL_PATH));
 
-		$response = $server->callback($server->request, $server->response);
+		$callback = $server->callback;
+		$response = $callback($server->request, $server->response, function($request, $response) {
+			return new MagentoFallbackResponse();
+		});
+		/* @var $response \Psr\Http\Message\ResponseInterface */
 
 		if (!$response instanceof MagentoFallbackResponse) {
 
-			if (! $response->emitter) {
-				$emitter = new \Zend\Diactoros\Response\SapiEmitter();
-			} else {
-				$emitter = $response->emitter;
-			}
+			$emitter = new \Zend\Diactoros\Response\SapiEmitter();
 
-			if ($magentoTemplate->isToHtmlTriggered()) {
-				// TODO: get content of $response and put it inside magento response.
-
+			if ($response instanceof HtmlResponse  && $response->getHtmlElement() == $magentoTemplate) {
 				$defaultMagentoController->loadLayout();
+
+				// Let's register the renderer
+				$magentoTemplate->toHtml();
+
+				// Let's register JS and CSS
+				$magentoTemplate->getWebLibraryManager()->toHtml();
 
 				$contentBlock = Mouf::getMagentoTemplate()->getContent();
 				$magentoContentBlock = new MagentoHtmlElementBlock($contentBlock);
@@ -46,6 +52,7 @@ class Mouf_Mvc_Model_Observer extends Varien_Event_Observer
 					$defaultMagentoController->getLayout()->addBlock($magentoBlock, "mouf.".$blockName);
 					$defaultMagentoController->getLayout()->getBlock($blockName)->append($magentoBlock);
 				}
+				//var_dump(array_keys($defaultMagentoController->getLayout()->getAllBlocks()));
 
 				$defaultMagentoController->getLayout()->getBlock('root')->setTemplate($magentoTemplate->getTemplate());
 
@@ -53,10 +60,8 @@ class Mouf_Mvc_Model_Observer extends Varien_Event_Observer
 
 				$defaultMagentoController->renderLayout();
 
-				//$defaultMagentoController->getResponse()->sendResponse();
-				$emitter->emit($defaultMagentoController->getResponse(), 0);
+				$defaultMagentoController->getResponse()->sendResponse();
 			} else {
-
 				$emitter->emit($response);
 			}
 			// Exit not very good, but we are acting on an event that does not allow us to do otherwise.
