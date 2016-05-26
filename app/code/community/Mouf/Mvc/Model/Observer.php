@@ -1,5 +1,6 @@
 <?php
 use Mouf\Integration\Magento\MagentoFallbackResponse;
+use Mouf\Integration\Magento\ExceptionMagentoFallbackResponse;
 use Mouf\Integration\Magento\MagentoHtmlElementBlock;
 use Mouf\Mvc\Splash\HtmlResponse;
 use Zend\Diactoros\Server;
@@ -24,9 +25,19 @@ class Mouf_Mvc_Model_Observer extends Varien_Event_Observer
 		define('ROOT_URL', parse_url(Mage::getBaseUrl(Mage_Core_Model_Store::URL_TYPE_WEB), PHP_URL_PATH));
 
 		$callback = $server->callback;
-		$response = $callback($server->request, $server->response, function($request, $response) {
+		$response = $callback($server->request, $server->response, function($request, $response, $err = null) {
+			/**
+			 * If there is an error not handled by others middleware, our middleware is called with an exception as first argument (we are the final handler)
+			 * We need to propagate the exception 
+			 */
+			if ($err instanceof \Exception) {
+				return new ExceptionMagentoFallbackResponse($err);
+			}
 			return new MagentoFallbackResponse();
 		});
+		if ($response instanceof ExceptionMagentoFallbackResponse) {
+			throw $response->getException();
+		}
 		/* @var $response \Psr\Http\Message\ResponseInterface */
 
 		if (!$response instanceof MagentoFallbackResponse) {
