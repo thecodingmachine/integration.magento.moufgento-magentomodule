@@ -3,6 +3,7 @@ use Mouf\Integration\Magento\MagentoFallbackResponse;
 use Mouf\Integration\Magento\MagentoHtmlElementBlock;
 use Mouf\Mvc\Splash\HtmlResponse;
 use Zend\Diactoros\Server;
+use Mouf\Integration\Magento\MagentoTemplate;
 
 class Mouf_Mvc_Model_Observer extends Varien_Event_Observer
 {
@@ -18,8 +19,6 @@ class Mouf_Mvc_Model_Observer extends Varien_Event_Observer
 
 		$server = Server::createServer($defaultRouter, $_SERVER, $_GET, $_POST, $_COOKIE, $_FILES);
 
-		$magentoTemplate = Mouf::getMagentoTemplate();
-		$magentoTemplate->setLayout($defaultMagentoController->getLayout());
 
 		define('ROOT_URL', parse_url(Mage::getBaseUrl(Mage_Core_Model_Store::URL_TYPE_WEB), PHP_URL_PATH));
 
@@ -33,16 +32,17 @@ class Mouf_Mvc_Model_Observer extends Varien_Event_Observer
 
 			$emitter = new \Zend\Diactoros\Response\SapiEmitter();
 
-			if ($response instanceof HtmlResponse  && $response->getHtmlElement() == $magentoTemplate) {
+			if ($response instanceof HtmlResponse  && $response->getHtmlElement() instanceof MagentoTemplate) {
 				$defaultMagentoController->loadLayout();
-
+				$magentoTemplate = $response->getHtmlElement();
+				$magentoTemplate->setLayout($defaultMagentoController->getLayout());
 				// Let's register the renderer
 				$magentoTemplate->toHtml();
 
 				// Let's register JS and CSS
 				$magentoTemplate->getWebLibraryManager()->toHtml();
 
-				$contentBlock = Mouf::getMagentoTemplate()->getContent();
+				$contentBlock = $magentoTemplate->getContent();
 				$magentoContentBlock = new MagentoHtmlElementBlock($contentBlock);
 
 				$defaultMagentoController->getLayout()->addBlock($magentoContentBlock, "my.content.mouf.block");
