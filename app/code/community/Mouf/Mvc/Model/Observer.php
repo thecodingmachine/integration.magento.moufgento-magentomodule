@@ -30,14 +30,12 @@ class Mouf_Mvc_Model_Observer extends Varien_Event_Observer
 			 * If there is an error not handled by others middleware, our middleware is called with an exception as first argument (we are the final handler)
 			 * We need to propagate the exception 
 			 */
+			
 			if ($err instanceof \Exception) {
-				return new ExceptionMagentoFallbackResponse($err);
+				throw $err;
 			}
 			return new MagentoFallbackResponse();
 		});
-		if ($response instanceof ExceptionMagentoFallbackResponse) {
-			throw $response->getException();
-		}
 		/* @var $response \Psr\Http\Message\ResponseInterface */
 
 		if (!$response instanceof MagentoFallbackResponse) {
